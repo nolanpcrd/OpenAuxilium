@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenAuxilium - Basic Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>An example to initialize OpenAuxilium</h1>
+    </div>
+
+    <!-- Include the OpenAuxilium plugin -->
+    <script src="../auxilium.js"></script>
+
+    <!-- Initialize the plugin -->
+    <script>
+        // Initialize OpenAuxilium with configuration
+        OpenAuxilium.init({
+            serverUrl: 'http://localhost:3000',
+            title: 'Support Assistant',
+            theme: 'light',
+            position: 'bottom-right',
+            welcomeMessage: 'Hello! I\'m your support assistant. How can I help you today?',
+            placeholder: 'Ask me anything...',
+            debug: true
+        });
+    </script>
+</body>
+</html>

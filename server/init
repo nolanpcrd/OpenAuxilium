@@ -1,0 +1,131 @@
+#!/bin/bash
+
+# Initialization script for downloading a Hugging Face model
+# Compatible with Linux
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+log_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Function to show a progress bar
+show_progress() {
+    local current=$1
+    local total=$2
+    local width=50
+    local percentage=$((current * 100 / total))
+    local completed=$((current * width / total))
+    local remaining=$((width - completed))
+
+    printf "\r["
+    printf "%${completed}s" | tr ' ' '█'
+    printf "%${remaining}s" | tr ' ' '░'
+    printf "] %d%% (%s/%s)" "$percentage" "$current" "$total"
+}
+
+# Verify the .env file exists
+ENV_FILE=".env"
+if [ ! -f "$ENV_FILE" ]; then
+    log_error ".env file not found at server root"
+    exit 1
+fi
+
+# Load environment variables from .env file
+log_info "Loading environment variables..."
+source "$ENV_FILE"
+
+# Verify if HUGGINGFACE_MODEL_URL is set
+if [ -z "$HUGGINGFACE_MODEL_URL" ]; then
+    log_error "HUGGINGFACE_MODEL_URL variable not defined in .env file"
+    log_info "Example: HUGGINGFACE_MODEL_URL=https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF/resolve/main/gemma-3n-E2B-it-Q4_K_M.gguf"
+    exit 1
+fi
+
+# Create AI directory if it doesn't exist
+AI_DIR="./AI"
+mkdir -p "$AI_DIR"
+
+# Extract model filename from URL if MODEL_NAME is not set
+if [ -z "$MODEL_NAME" ]; then
+    log_error "MODEL_NAME variable not defined in .env file"
+    log_info "Example: MODEL_NAME=model.gguf"
+    exit 1
+fi
+
+MODEL_PATH="$AI_DIR/$MODEL_NAME"
+
+log_info "Downloading model from: $HUGGINGFACE_MODEL_URL"
+log_info "Destination: $MODEL_PATH"
+
+# Check if file already exists
+if [ -f "$MODEL_PATH" ]; then
+    log_warning "Model already exists: $MODEL_PATH"
+    read -p "Do you want to re-download it? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Download cancelled"
+        exit 0
+    fi
+    rm "$MODEL_PATH"
+fi
+
+# Download function with size progress
+download_with_progress() {
+    local url="$1"
+    local output="$2"
+
+    # Use curl for download with progress
+    if command -v curl >/dev/null 2>&1; then
+        log_info "Starting download..."
+        curl -L "$url" -o "$output" --progress-bar
+
+    elif command -v wget >/dev/null 2>&1; then
+        log_info "Starting download..."
+        wget --progress=bar:force "$url" -O "$output"
+
+    else
+        log_error "No download tool found (curl or wget required)"
+        return 1
+    fi
+}
+
+# Download the model
+log_info "Download in progress..."
+if download_with_progress "$HUGGINGFACE_MODEL_URL" "$MODEL_PATH"; then
+    log_success "Model downloaded successfully!"
+    log_info "Location: $MODEL_PATH"
+
+    # Display downloaded file size
+    if command -v du >/dev/null 2>&1; then
+        file_size=$(du -h "$MODEL_PATH" | cut -f1)
+        log_info "File size: $file_size"
+    fi
+
+    log_success "Initialization completed!"
+else
+    log_error "Download failed"
+    # Clean up partially downloaded file
+    [ -f "$MODEL_PATH" ] && rm "$MODEL_PATH"
+    exit 1
+fi
