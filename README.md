@@ -4,8 +4,6 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-blue.svg)](https://www.ecma-international.org/)
 
-**USE LOCAL AI EVERYWHERE !!**
-
 **OpenAuxilium** is a complete AI-powered chatbot solution that enables you to deploy local AI chat assistants on any website. It consists of a powerful Node.js server that runs local LLaMA models and a lightweight JavaScript widget for seamless website integration.
 
 ## 🌟 Overview
@@ -285,7 +283,3 @@ We welcome contributions! Please see our contributing guidelines:
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
----
-
-**Long live local AI !**
